@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Finance Calculator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo">ƒ</div>
+      <div>
+        <h1>Finance Calculator</h1>
+        <p class="sub">Fast, private, in-browser financial calculators.</p>
+      </div>
+    </div>
+    <div class="meta">
+      <span class="pill">No backend</span>
+      <span class="pill">Offline-ready</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="tabs" aria-label="Calculator tabs">
+      <button class="tab active" data-tab="compound" aria-selected="true">Compound</button>
+      <button class="tab" data-tab="loan" aria-selected="false">Loan</button>
+      <button class="tab" data-tab="cagr" aria-selected="false">CAGR</button>
+    </nav>
+
+    <section class="panel active" id="panel-compound" role="region" aria-label="Compound interest">
+      <h2>Compound Interest (Future Value)</h2>
+      <div class="grid">
+        <label>Initial Principal
+          <input id="ci-principal" inputmode="decimal" value="10000" />
+        </label>
+        <label>Monthly Contribution
+          <input id="ci-monthly" inputmode="decimal" value="200" />
+        </label>
+        <label>Annual Interest Rate (%)
+          <input id="ci-rate" inputmode="decimal" value="7" />
+        </label>
+        <label>Years
+          <input id="ci-years" inputmode="decimal" value="20" />
+        </label>
+        <label>Compounds per Year
+          <input id="ci-compounds" inputmode="numeric" value="12" />
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="ci-calc">Calculate</button>
+        <button class="btn" id="ci-reset">Reset</button>
+      </div>
+      <div class="result" id="ci-result" aria-live="polite"></div>
+      <div class="note">Formula: FV = P(1+r/n)^(nt) + PMT * [((1+r/n)^(nt) - 1) / (r/n)]</div>
+    </section>
+
+    <section class="panel" id="panel-loan" role="region" aria-label="Loan payment">
+      <h2>Loan Payment (PMT)</h2>
+      <div class="grid">
+        <label>Loan Amount
+          <input id="loan-amount" inputmode="decimal" value="300000" />
+        </label>
+        <label>Annual Interest Rate (%)
+          <input id="loan-rate" inputmode="decimal" value="6" />
+        </label>
+        <label>Term (Years)
+          <input id="loan-years" inputmode="decimal" value="30" />
+        </label>
+        <label>Payments / Year
+          <input id="loan-payments" inputmode="numeric" value="12" />
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="loan-calc">Calculate</button>
+        <button class="btn" id="loan-reset">Reset</button>
+      </div>
+      <div class="result" id="loan-result" aria-live="polite"></div>
+      <details class="details" id="loan-details">
+        <summary>Amortization (first 12 payments)</summary>
+        <div class="table-wrap">
+          <table id="loan-table">
+            <thead>
+              <tr><th>#</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Balance</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </details>
+      <div class="note">Formula: PMT = P * (i(1+i)^n)/((1+i)^n - 1)</div>
+    </section>
+
+    <section class="panel" id="panel-cagr" role="region" aria-label="CAGR">
+      <h2>CAGR</h2>
+      <div class="grid">
+        <label>Beginning Value
+          <input id="cagr-begin" inputmode="decimal" value="10000" />
+        </label>
+        <label>Ending Value
+          <input id="cagr-end" inputmode="decimal" value="25000" />
+        </label>
+        <label>Years
+          <input id="cagr-years" inputmode="decimal" value="5" />
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="cagr-calc">Calculate</button>
+        <button class="btn" id="cagr-reset">Reset</button>
+      </div>
+      <div class="result" id="cagr-result" aria-live="polite"></div>
+      <div class="note">Formula: CAGR = (End/Begin)^(1/Years) - 1</div>
+    </section>
+
+    <footer class="footer">
+      <span>Built with vanilla JS. Values are estimates only.</span>
+      <a href="#" id="copy-link">Copy share link</a>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
