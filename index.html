@@ -27,6 +27,7 @@
       <button class="tab" data-tab="loan" aria-selected="false">Loan</button>
       <button class="tab" data-tab="cagr" aria-selected="false">CAGR</button>
       <button class="tab" data-tab="npv" aria-selected="false">NPV / IRR</button>
+      <button class="tab" data-tab="xirr" aria-selected="false">XIRR</button>
     </nav>
 
     <section class="panel active" id="panel-compound" role="region" aria-label="Compound interest">
@@ -131,6 +132,27 @@
       </div>
       <div class="result" id="npv-result" aria-live="polite"></div>
       <div class="note">Cashflows are per period starting at t=0. IRR uses Newton-Raphson; annualized: (1+IRR)^(periods/year)-1.</div>
+    </section>
+
+    <section class="panel" id="panel-xirr" role="region" aria-label="XIRR">
+      <h2>XIRR (Irregular Cashflows)</h2>
+      <div class="grid">
+        <label>Guess Rate (Annual, %)
+          <input id="xirr-guess" inputmode="decimal" value="10" />
+        </label>
+        <label>Cashflows (date:amount, one per line)
+          <input id="xirr-rows" inputmode="text" value="2024-01-01:-10000; 2024-06-01:2000; 2025-01-01:3000; 2026-01-01:8000" />
+        </label>
+        <label>Day Count
+          <input id="xirr-daycount" inputmode="text" value="365" />
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="xirr-calc">Calculate</button>
+        <button class="btn" id="xirr-reset">Reset</button>
+      </div>
+      <div class="result" id="xirr-result" aria-live="polite"></div>
+      <div class="note">Format: YYYY-MM-DD:amount separated by semicolons or newlines. XIRR is annualized.</div>
     </section>
 
     <footer class="footer">
