@@ -22,6 +22,7 @@ function setTabs() {
     loan: $('panel-loan'),
     cagr: $('panel-cagr'),
     npv: $('panel-npv'),
+    xirr: $('panel-xirr'),
   };
 
   tabs.forEach((t) => {
@@ -272,6 +273,107 @@ function calcNpvIrr(){
   `;
 }
 
+function parseXirrRows(raw){
+  // Accept separators: newlines or semicolons
+  const parts = String(raw)
+    .split(/\n|;/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const rows = [];
+  for (const p of parts) {
+    const [d, a] = p.split(':').map(x => x.trim());
+    if (!d || !a) return null;
+    const dt = new Date(d);
+    const amt = toNumber(a);
+    if (!(dt instanceof Date) || isNaN(dt.getTime()) || !Number.isFinite(amt)) return null;
+    rows.push({ date: dt, amount: amt });
+  }
+  // sort by date
+  rows.sort((x,y)=> x.date - y.date);
+  return rows;
+}
+
+function xnpv(rate, rows, dayCount){
+  const t0 = rows[0].date;
+  let v = 0;
+  for (const r of rows) {
+    const days = (r.date - t0) / (1000*60*60*24);
+    const years = days / dayCount;
+    v += r.amount / Math.pow(1 + rate, years);
+  }
+  return v;
+}
+
+function dxnpv(rate, rows, dayCount){
+  const t0 = rows[0].date;
+  let dv = 0;
+  for (const r of rows) {
+    const days = (r.date - t0) / (1000*60*60*24);
+    const years = days / dayCount;
+    if (years === 0) continue;
+    dv += -years * r.amount / Math.pow(1 + rate, years + 1);
+  }
+  return dv;
+}
+
+function xirr(rows, guessRate, dayCount){
+  const hasPos = rows.some(r => r.amount > 0);
+  const hasNeg = rows.some(r => r.amount < 0);
+  if (!hasPos || !hasNeg) return NaN;
+
+  let r = guessRate;
+  for (let iter = 0; iter < 80; iter++) {
+    const f = xnpv(r, rows, dayCount);
+    const df = dxnpv(r, rows, dayCount);
+    if (!Number.isFinite(df) || Math.abs(df) < 1e-12) break;
+    const next = r - f/df;
+    if (!Number.isFinite(next)) break;
+    if (Math.abs(next - r) < 1e-12) { r = next; break; }
+    r = next;
+  }
+  return r;
+}
+
+function calcXirr(){
+  const guessPct = toNumber($('xirr-guess').value);
+  const dayCount = toNumber($('xirr-daycount').value);
+  const rows = parseXirrRows($('xirr-rows').value);
+
+  const out = $('xirr-result');
+  out.innerHTML = '';
+
+  if (!Number.isFinite(guessPct) || !Number.isFinite(dayCount) || dayCount <= 0 || !rows || rows.length < 2) {
+    out.textContent = 'Please enter a valid guess, day count, and cashflow rows.';
+    return;
+  }
+
+  const r0 = guessPct/100;
+  const r = xirr(rows, r0, dayCount);
+  if (!Number.isFinite(r)) {
+    out.textContent = 'IRR could not be computed (need both negative and positive cashflows).';
+    return;
+  }
+
+  const v0 = xnpv(r, rows, dayCount);
+  const first = rows[0].date.toISOString().slice(0,10);
+  const last = rows[rows.length-1].date.toISOString().slice(0,10);
+
+  out.innerHTML = `
+    <div class="big">${pct(r)}</div>
+    <div class="row"><span>XNPV @ IRR</span><span>${money(v0)}</span></div>
+    <div class="row"><span>Range</span><span>${first} → ${last}</span></div>
+    <div class="row"><span>Rows</span><span>${rows.length}</span></div>
+  `;
+}
+
+function resetXirr(){
+  $('xirr-guess').value = 10;
+  $('xirr-daycount').value = 365;
+  $('xirr-rows').value = '2024-01-01:-10000; 2024-06-01:2000; 2025-01-01:3000; 2026-01-01:8000';
+  $('xirr-result').innerHTML='';
+}
+
 function resetNpv(){
   $('npv-rate').value = 1;
   $('npv-cashflows').value = '-10000, 3000, 3000, 3000, 3000';
@@ -289,6 +391,8 @@ function main(){
   $('cagr-reset').addEventListener('click', resetCagr);
   $('npv-calc').addEventListener('click', calcNpvIrr);
   $('npv-reset').addEventListener('click', resetNpv);
+  $('xirr-calc').addEventListener('click', calcXirr);
+  $('xirr-reset').addEventListener('click', resetXirr);
   setupShareLink();
 }
 
