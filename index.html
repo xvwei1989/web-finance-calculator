@@ -26,6 +26,7 @@
       <button class="tab active" data-tab="compound" aria-selected="true">Compound</button>
       <button class="tab" data-tab="loan" aria-selected="false">Loan</button>
       <button class="tab" data-tab="cagr" aria-selected="false">CAGR</button>
+      <button class="tab" data-tab="npv" aria-selected="false">NPV / IRR</button>
     </nav>
 
     <section class="panel active" id="panel-compound" role="region" aria-label="Compound interest">
@@ -109,6 +110,27 @@
       </div>
       <div class="result" id="cagr-result" aria-live="polite"></div>
       <div class="note">Formula: CAGR = (End/Begin)^(1/Years) - 1</div>
+    </section>
+
+    <section class="panel" id="panel-npv" role="region" aria-label="NPV and IRR">
+      <h2>NPV / IRR (Periodic Cashflows)</h2>
+      <div class="grid">
+        <label>Discount Rate per Period (%)
+          <input id="npv-rate" inputmode="decimal" value="1" />
+        </label>
+        <label>Cashflows (comma-separated)
+          <input id="npv-cashflows" inputmode="text" value="-10000, 3000, 3000, 3000, 3000" />
+        </label>
+        <label>Periods / Year (for IRR annualized)
+          <input id="npv-periods" inputmode="numeric" value="12" />
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="npv-calc">Calculate</button>
+        <button class="btn" id="npv-reset">Reset</button>
+      </div>
+      <div class="result" id="npv-result" aria-live="polite"></div>
+      <div class="note">Cashflows are per period starting at t=0. IRR uses Newton-Raphson; annualized: (1+IRR)^(periods/year)-1.</div>
     </section>
 
     <footer class="footer">

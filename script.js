@@ -21,6 +21,7 @@ function setTabs() {
     compound: $('panel-compound'),
     loan: $('panel-loan'),
     cagr: $('panel-cagr'),
+    npv: $('panel-npv'),
   };
 
   tabs.forEach((t) => {
@@ -203,6 +204,81 @@ function setupShareLink(){
   }
 }
 
+function parseCashflows(text){
+  return String(text)
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => toNumber(s));
+}
+
+function npv(rate, cashflows){
+  // rate as decimal per period
+  let v = 0;
+  for (let t=0; t<cashflows.length; t++) {
+    v += cashflows[t] / Math.pow(1+rate, t);
+  }
+  return v;
+}
+
+function irr(cashflows){
+  // Newton-Raphson on NPV=0, return rate per period
+  // requires at least one negative and one positive cashflow
+  const hasPos = cashflows.some(x => x > 0);
+  const hasNeg = cashflows.some(x => x < 0);
+  if (!hasPos || !hasNeg) return NaN;
+
+  let r = 0.1; // initial guess
+  for (let iter=0; iter<50; iter++) {
+    let f = 0;
+    let df = 0;
+    for (let t=0; t<cashflows.length; t++) {
+      const c = cashflows[t];
+      const denom = Math.pow(1+r, t);
+      f += c / denom;
+      if (t > 0) df += -t * c / (denom * (1+r));
+    }
+    if (!Number.isFinite(df) || Math.abs(df) < 1e-12) break;
+    const next = r - f/df;
+    if (!Number.isFinite(next)) break;
+    if (Math.abs(next - r) < 1e-10) { r = next; break; }
+    r = next;
+  }
+  return r;
+}
+
+function calcNpvIrr(){
+  const ratePct = toNumber($('npv-rate').value);
+  const periods = toNumber($('npv-periods').value);
+  const flows = parseCashflows($('npv-cashflows').value);
+  const out = $('npv-result');
+  out.innerHTML = '';
+
+  if (!Number.isFinite(ratePct) || !Number.isFinite(periods) || periods <= 0 || flows.some(x => !Number.isFinite(x)) || flows.length < 2) {
+    out.textContent = 'Please enter a valid rate, periods/year, and at least 2 cashflows.';
+    return;
+  }
+
+  const r = ratePct/100;
+  const v = npv(r, flows);
+  const rIrr = irr(flows);
+  const irrAnnual = Number.isFinite(rIrr) ? (Math.pow(1+rIrr, periods) - 1) : NaN;
+
+  out.innerHTML = `
+    <div class="big">NPV: ${money(v)}</div>
+    <div class="row"><span>IRR (per period)</span><span>${Number.isFinite(rIrr)?pct(rIrr):'—'}</span></div>
+    <div class="row"><span>IRR (annualized)</span><span>${Number.isFinite(irrAnnual)?pct(irrAnnual):'—'}</span></div>
+    <div class="row"><span>Cashflows</span><span>${flows.length} periods</span></div>
+  `;
+}
+
+function resetNpv(){
+  $('npv-rate').value = 1;
+  $('npv-cashflows').value = '-10000, 3000, 3000, 3000, 3000';
+  $('npv-periods').value = 12;
+  $('npv-result').innerHTML='';
+}
+
 function main(){
   setTabs();
   $('ci-calc').addEventListener('click', calcCompound);
@@ -211,6 +287,8 @@ function main(){
   $('loan-reset').addEventListener('click', resetLoan);
   $('cagr-calc').addEventListener('click', calcCagr);
   $('cagr-reset').addEventListener('click', resetCagr);
+  $('npv-calc').addEventListener('click', calcNpvIrr);
+  $('npv-reset').addEventListener('click', resetNpv);
   setupShareLink();
 }
 
