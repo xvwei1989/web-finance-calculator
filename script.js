@@ -24,6 +24,7 @@ function setTabs() {
     npv: $('panel-npv'),
     xirr: $('panel-xirr'),
     inflation: $('panel-inflation'),
+    tax: $('panel-tax'),
   };
 
   tabs.forEach((t) => {
@@ -436,6 +437,66 @@ function resetInflation(){
   $('inf-result').innerHTML='';
 }
 
+function calcTax(){
+  const preTaxReturnPct = toNumber($('tax-prereturn').value);
+  const amount = toNumber($('tax-amount').value);
+  const period = $('tax-period').value;
+  const shortTermRate = toNumber($('tax-short-rate').value) / 100;
+  const longTermRate = toNumber($('tax-long-rate').value) / 100;
+
+  const out = $('tax-result');
+  out.innerHTML = '';
+
+  if (![preTaxReturnPct, amount, shortTermRate, longTermRate].every(Number.isFinite) || amount <= 0) {
+    out.textContent = 'Please enter valid inputs.';
+    return;
+  }
+
+  const preTaxReturn = preTaxReturnPct / 100;
+  const isShortTerm = period === 'short';
+  const taxRate = isShortTerm ? shortTermRate : longTermRate;
+  const periodLabel = isShortTerm ? 'Short-Term' : 'Long-Term';
+
+  // Calculate gains
+  const preTaxGain = amount * preTaxReturn;
+  const preTaxTotal = amount + preTaxGain;
+
+  // Calculate tax on gains only
+  const taxOwed = preTaxGain * taxRate;
+  const afterTaxGain = preTaxGain - taxOwed;
+  const afterTaxTotal = amount + afterTaxGain;
+
+  // Calculate after-tax return percentage
+  const afterTaxReturn = afterTaxGain / amount;
+
+  // Effective tax rate on returns
+  const effectiveTaxRate = taxOwed / preTaxGain;
+
+  out.innerHTML = `
+    <div class="big">After-Tax Return: ${pct(afterTaxReturn)}</div>
+    <div class="row"><span>Pre-Tax Return</span><span>${pct(preTaxReturn)}</span></div>
+    <div class="row"><span>Tax Period</span><span>${periodLabel}</span></div>
+    <div class="row"><span>Applicable Tax Rate</span><span>${pct(taxRate)}</span></div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:12px 0">
+    <div class="row"><span>Pre-Tax Gain</span><span>${money(preTaxGain)}</span></div>
+    <div class="row"><span>Tax Owed</span><span style="color:var(--bad)">-${money(taxOwed)}</span></div>
+    <div class="row"><span>After-Tax Gain</span><span style="color:var(--good)">${money(afterTaxGain)}</span></div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:12px 0">
+    <div class="row"><span>Pre-Tax Total</span><span>${money(preTaxTotal)}</span></div>
+    <div class="row"><span>After-Tax Total</span><span>${money(afterTaxTotal)}</span></div>
+    <div class="row"><span>Effective Tax Rate</span><span>${pct(effectiveTaxRate)}</span></div>
+  `;
+}
+
+function resetTax(){
+  $('tax-prereturn').value = 10;
+  $('tax-amount').value = 10000;
+  $('tax-period').value = 'long';
+  $('tax-short-rate').value = 35;
+  $('tax-long-rate').value = 15;
+  $('tax-result').innerHTML='';
+}
+
 function resetNpv(){
   $('npv-rate').value = 1;
   $('npv-cashflows').value = '-10000, 3000, 3000, 3000, 3000';
@@ -457,6 +518,8 @@ function main(){
   $('xirr-reset').addEventListener('click', resetXirr);
   $('inf-calc').addEventListener('click', calcInflation);
   $('inf-reset').addEventListener('click', resetInflation);
+  $('tax-calc').addEventListener('click', calcTax);
+  $('tax-reset').addEventListener('click', resetTax);
   setupShareLink();
 }
 
