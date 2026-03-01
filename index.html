@@ -29,6 +29,7 @@
       <button class="tab" data-tab="npv" aria-selected="false">NPV / IRR</button>
       <button class="tab" data-tab="xirr" aria-selected="false">XIRR</button>
       <button class="tab" data-tab="inflation" aria-selected="false">Inflation</button>
+      <button class="tab" data-tab="tax" aria-selected="false">After-Tax</button>
     </nav>
 
     <section class="panel active" id="panel-compound" role="region" aria-label="Compound interest">
@@ -178,6 +179,36 @@
       </div>
       <div class="result" id="inf-result" aria-live="polite"></div>
       <div class="note">Formula: Real Return = (1 + Nominal) / (1 + Inflation) - 1. Purchasing Power = Future Value / (1 + Inflation)^Years</div>
+    </section>
+
+    <section class="panel" id="panel-tax" role="region" aria-label="After-Tax Return">
+      <h2>After-Tax Return Calculator</h2>
+      <div class="grid">
+        <label>Pre-Tax Return (%)
+          <input id="tax-prereturn" inputmode="decimal" value="10" />
+        </label>
+        <label>Investment Amount ($)
+          <input id="tax-amount" inputmode="decimal" value="10000" />
+        </label>
+        <label>Holding Period
+          <select id="tax-period">
+            <option value="short">Short-Term (&lt;1 year)</option>
+            <option value="long" selected>Long-Term (≥1 year)</option>
+          </select>
+        </label>
+        <label>Short-Term Tax Rate (%)
+          <input id="tax-short-rate" inputmode="decimal" value="35" />
+        </label>
+        <label>Long-Term Tax Rate (%)
+          <input id="tax-long-rate" inputmode="decimal" value="15" />
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="tax-calc">Calculate</button>
+        <button class="btn" id="tax-reset">Reset</button>
+      </div>
+      <div class="result" id="tax-result" aria-live="polite"></div>
+      <div class="note">Short-term gains taxed as ordinary income. Long-term gains have preferential rates (0%, 15%, or 20% based on income).</div>
     </section>
 
     <footer class="footer">
