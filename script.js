@@ -23,6 +23,7 @@ function setTabs() {
     cagr: $('panel-cagr'),
     npv: $('panel-npv'),
     xirr: $('panel-xirr'),
+    inflation: $('panel-inflation'),
   };
 
   tabs.forEach((t) => {
@@ -374,6 +375,67 @@ function resetXirr(){
   $('xirr-result').innerHTML='';
 }
 
+function calcInflation(){
+  const nominalPct = toNumber($('inf-nominal').value);
+  const inflationPct = toNumber($('inf-rate').value);
+  const years = toNumber($('inf-years').value);
+  const initial = toNumber($('inf-initial').value);
+
+  const out = $('inf-result');
+  out.innerHTML = '';
+
+  if (![nominalPct, inflationPct, years, initial].every(Number.isFinite) || years <= 0 || initial <= 0) {
+    out.textContent = 'Please enter valid inputs.';
+    return;
+  }
+
+  const nominal = nominalPct / 100;
+  const inflation = inflationPct / 100;
+
+  // Real return formula: (1 + nominal) / (1 + inflation) - 1
+  const realReturn = (1 + nominal) / (1 + inflation) - 1;
+
+  // Future value at nominal rate
+  const fvNominal = initial * Math.pow(1 + nominal, years);
+
+  // Purchasing power (real value) in today's dollars
+  const purchasingPower = fvNominal / Math.pow(1 + inflation, years);
+
+  // Alternative: calculate using real return directly
+  const fvReal = initial * Math.pow(1 + realReturn, years);
+
+  // Total nominal gain
+  const nominalGain = fvNominal - initial;
+
+  // Total real gain (in today's purchasing power)
+  const realGain = purchasingPower - initial;
+
+  // Inflation erosion
+  const erosion = fvNominal - purchasingPower;
+
+  out.innerHTML = `
+    <div class="big">Real Return: ${pct(realReturn)}</div>
+    <div class="row"><span>Nominal Return</span><span>${pct(nominal)}</span></div>
+    <div class="row"><span>Inflation Rate</span><span>${pct(inflation)}</span></div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:12px 0">
+    <div class="row"><span>Future Value (Nominal)</span><span>${money(fvNominal)}</span></div>
+    <div class="row"><span>Purchasing Power (Real)</span><span>${money(purchasingPower)}</span></div>
+    <div class="row"><span>Inflation Erosion</span><span style="color:var(--bad)">-${money(erosion)}</span></div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:12px 0">
+    <div class="row"><span>Nominal Gain</span><span>${money(nominalGain)}</span></div>
+    <div class="row"><span>Real Gain (Today's $)</span><span style="color:${realGain>=0?'var(--good)':'var(--bad)'}">${money(realGain)}</span></div>
+    <div class="row"><span>Period</span><span>${years} years</span></div>
+  `;
+}
+
+function resetInflation(){
+  $('inf-nominal').value = 8;
+  $('inf-rate').value = 3;
+  $('inf-years').value = 10;
+  $('inf-initial').value = 10000;
+  $('inf-result').innerHTML='';
+}
+
 function resetNpv(){
   $('npv-rate').value = 1;
   $('npv-cashflows').value = '-10000, 3000, 3000, 3000, 3000';
@@ -393,6 +455,8 @@ function main(){
   $('npv-reset').addEventListener('click', resetNpv);
   $('xirr-calc').addEventListener('click', calcXirr);
   $('xirr-reset').addEventListener('click', resetXirr);
+  $('inf-calc').addEventListener('click', calcInflation);
+  $('inf-reset').addEventListener('click', resetInflation);
   setupShareLink();
 }
 
