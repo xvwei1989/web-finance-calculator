@@ -25,6 +25,7 @@ function setTabs() {
     xirr: $('panel-xirr'),
     inflation: $('panel-inflation'),
     tax: $('panel-tax'),
+    portfolio: $('panel-portfolio'),
   };
 
   tabs.forEach((t) => {
@@ -497,6 +498,97 @@ function resetTax(){
   $('tax-result').innerHTML='';
 }
 
+function calcPortfolio(){
+  // Asset 1
+  const name1 = $('pf-name1').value || 'Asset 1';
+  const ret1 = toNumber($('pf-return1').value) / 100;
+  const weight1 = toNumber($('pf-weight1').value) / 100;
+  const vol1 = toNumber($('pf-vol1').value) / 100;
+
+  // Asset 2
+  const name2 = $('pf-name2').value || 'Asset 2';
+  const ret2 = toNumber($('pf-return2').value) / 100;
+  const weight2 = toNumber($('pf-weight2').value) / 100;
+  const vol2 = toNumber($('pf-vol2').value) / 100;
+
+  // Portfolio params
+  const correlation = toNumber($('pf-corr').value);
+  const years = toNumber($('pf-years').value);
+  const initial = toNumber($('pf-initial').value);
+
+  const out = $('pf-result');
+  out.innerHTML = '';
+
+  // Validate inputs
+  const weights = [weight1, weight2];
+  const totalWeight = weight1 + weight2;
+  if (![ret1, ret2, weight1, weight2, vol1, vol2, correlation, years, initial].every(Number.isFinite) ||
+      years <= 0 || initial <= 0 || totalWeight <= 0 || Math.abs(correlation) > 1) {
+    out.textContent = 'Please enter valid inputs. Weights must sum > 0, correlation must be -1 to 1.';
+    return;
+  }
+
+  // Normalize weights if not summing to 1
+  const w1 = weight1 / totalWeight;
+  const w2 = weight2 / totalWeight;
+
+  // Portfolio expected return (weighted average)
+  const portReturn = w1 * ret1 + w2 * ret2;
+
+  // Portfolio variance using MPT formula
+  // σ²p = w1²σ1² + w2²σ2² + 2*w1*w2*σ1*σ2*ρ
+  const variance = Math.pow(w1, 2) * Math.pow(vol1, 2) + 
+                   Math.pow(w2, 2) * Math.pow(vol2, 2) + 
+                   2 * w1 * w2 * vol1 * vol2 * correlation;
+  const portVolatility = Math.sqrt(variance);
+
+  // Sharpe Ratio (assuming 3% risk-free rate)
+  const riskFreeRate = 0.03;
+  const sharpeRatio = (portReturn - riskFreeRate) / portVolatility;
+
+  // Future value calculation (using compound return)
+  const fv = initial * Math.pow(1 + portReturn, years);
+  const totalGain = fv - initial;
+
+  // Volatility-adjusted scenarios (±1 std dev)
+  const optimisticReturn = portReturn + portVolatility;
+  const pessimisticReturn = portReturn - portVolatility;
+  const fvOptimistic = initial * Math.pow(1 + optimisticReturn, years);
+  const fvPessimistic = initial * Math.pow(1 + pessimisticReturn, years);
+
+  out.innerHTML = `
+    <div class="big">Portfolio Return: ${pct(portReturn)}</div>
+    <div class="row"><span>Portfolio Volatility</span><span>${pct(portVolatility)}</span></div>
+    <div class="row"><span>Sharpe Ratio</span><span style="color:${sharpeRatio>=1?'var(--good)':sharpeRatio>=0?'var(--muted)':'var(--bad)'}">${sharpeRatio.toFixed(2)}</span></div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:12px 0">
+    <div class="row"><span>${name1} Weight</span><span>${pct(w1)}</span></div>
+    <div class="row"><span>${name2} Weight</span><span>${pct(w2)}</span></div>
+    <div class="row"><span>Correlation</span><span>${correlation.toFixed(2)}</span></div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:12px 0">
+    <div class="row"><span>Initial Investment</span><span>${money(initial)}</span></div>
+    <div class="row"><span>Expected Value (${years}y)</span><span>${money(fv)}</span></div>
+    <div class="row"><span>Total Gain</span><span style="color:${totalGain>=0?'var(--good)':'var(--bad)'}">${money(totalGain)}</span></div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:12px 0">
+    <div class="row"><span>Optimistic (+1σ)</span><span>${money(fvOptimistic)}</span></div>
+    <div class="row"><span>Pessimistic (-1σ)</span><span>${money(fvPessimistic)}</span></div>
+  `;
+}
+
+function resetPortfolio(){
+  $('pf-name1').value = 'Stocks (S&P 500)';
+  $('pf-return1').value = 10;
+  $('pf-weight1').value = 60;
+  $('pf-vol1').value = 15;
+  $('pf-name2').value = 'Bonds (Aggregate)';
+  $('pf-return2').value = 5;
+  $('pf-weight2').value = 40;
+  $('pf-vol2').value = 5;
+  $('pf-corr').value = 0.2;
+  $('pf-years').value = 10;
+  $('pf-initial').value = 10000;
+  $('pf-result').innerHTML='';
+}
+
 function resetNpv(){
   $('npv-rate').value = 1;
   $('npv-cashflows').value = '-10000, 3000, 3000, 3000, 3000';
@@ -520,6 +612,8 @@ function main(){
   $('inf-reset').addEventListener('click', resetInflation);
   $('tax-calc').addEventListener('click', calcTax);
   $('tax-reset').addEventListener('click', resetTax);
+  $('pf-calc').addEventListener('click', calcPortfolio);
+  $('pf-reset').addEventListener('click', resetPortfolio);
   setupShareLink();
 }
 
