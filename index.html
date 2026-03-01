@@ -30,6 +30,7 @@
       <button class="tab" data-tab="xirr" aria-selected="false">XIRR</button>
       <button class="tab" data-tab="inflation" aria-selected="false">Inflation</button>
       <button class="tab" data-tab="tax" aria-selected="false">After-Tax</button>
+      <button class="tab" data-tab="portfolio" aria-selected="false">Portfolio</button>
     </nav>
 
     <section class="panel active" id="panel-compound" role="region" aria-label="Compound interest">
@@ -209,6 +210,55 @@
       </div>
       <div class="result" id="tax-result" aria-live="polite"></div>
       <div class="note">Short-term gains taxed as ordinary income. Long-term gains have preferential rates (0%, 15%, or 20% based on income).</div>
+    </section>
+
+    <section class="panel" id="panel-portfolio" role="region" aria-label="Portfolio Backtest">
+      <h2>Portfolio Allocation Backtest</h2>
+      <div class="grid">
+        <label>Asset 1 Name
+          <input id="pf-name1" inputmode="text" value="Stocks (S&P 500)" />
+        </label>
+        <label>Asset 1 Return (%)
+          <input id="pf-return1" inputmode="decimal" value="10" />
+        </label>
+        <label>Asset 1 Weight (%)
+          <input id="pf-weight1" inputmode="decimal" value="60" />
+        </label>
+        <label>Asset 1 Volatility (%)
+          <input id="pf-vol1" inputmode="decimal" value="15" />
+        </label>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <label>Asset 2 Name
+          <input id="pf-name2" inputmode="text" value="Bonds (Aggregate)" />
+        </label>
+        <label>Asset 2 Return (%)
+          <input id="pf-return2" inputmode="decimal" value="5" />
+        </label>
+        <label>Asset 2 Weight (%)
+          <input id="pf-weight2" inputmode="decimal" value="40" />
+        </label>
+        <label>Asset 2 Volatility (%)
+          <input id="pf-vol2" inputmode="decimal" value="5" />
+        </label>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <label>Correlation (-1 to 1)
+          <input id="pf-corr" inputmode="decimal" value="0.2" step="0.1" min="-1" max="1" />
+        </label>
+        <label>Investment Period (Years)
+          <input id="pf-years" inputmode="decimal" value="10" />
+        </label>
+        <label>Initial Investment ($)
+          <input id="pf-initial" inputmode="decimal" value="10000" />
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="pf-calc">Calculate</button>
+        <button class="btn" id="pf-reset">Reset</button>
+      </div>
+      <div class="result" id="pf-result" aria-live="polite"></div>
+      <div class="note">Portfolio return = weighted average of asset returns. Volatility uses modern portfolio theory with correlation. Sharpe Ratio assumes 3% risk-free rate.</div>
     </section>
 
     <footer class="footer">
