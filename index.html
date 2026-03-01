@@ -28,6 +28,7 @@
       <button class="tab" data-tab="cagr" aria-selected="false">CAGR</button>
       <button class="tab" data-tab="npv" aria-selected="false">NPV / IRR</button>
       <button class="tab" data-tab="xirr" aria-selected="false">XIRR</button>
+      <button class="tab" data-tab="inflation" aria-selected="false">Inflation</button>
     </nav>
 
     <section class="panel active" id="panel-compound" role="region" aria-label="Compound interest">
@@ -153,6 +154,30 @@
       </div>
       <div class="result" id="xirr-result" aria-live="polite"></div>
       <div class="note">Format: YYYY-MM-DD:amount separated by semicolons or newlines. XIRR is annualized.</div>
+    </section>
+
+    <section class="panel" id="panel-inflation" role="region" aria-label="Inflation Adjustment">
+      <h2>Inflation Adjustment (Real vs Nominal)</h2>
+      <div class="grid">
+        <label>Nominal Return (%)
+          <input id="inf-nominal" inputmode="decimal" value="8" />
+        </label>
+        <label>Inflation Rate (%)
+          <input id="inf-rate" inputmode="decimal" value="3" />
+        </label>
+        <label>Investment Period (Years)
+          <input id="inf-years" inputmode="decimal" value="10" />
+        </label>
+        <label>Initial Investment ($)
+          <input id="inf-initial" inputmode="decimal" value="10000" />
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="inf-calc">Calculate</button>
+        <button class="btn" id="inf-reset">Reset</button>
+      </div>
+      <div class="result" id="inf-result" aria-live="polite"></div>
+      <div class="note">Formula: Real Return = (1 + Nominal) / (1 + Inflation) - 1. Purchasing Power = Future Value / (1 + Inflation)^Years</div>
     </section>
 
     <footer class="footer">
